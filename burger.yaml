@@ -105,60 +105,49 @@ controller_server:
     min_y_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 1.0
+
     progress_checker_plugins: ["progress_checker"]
     goal_checker_plugins: ["goal_checker"]
-    controller_plugins: ["FollowPath"]
+    controller_plugins: ["GracefulController"]
+
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.05
       movement_time_allowance: 15.0
+
     goal_checker:
       stateful: true
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.15
       yaw_goal_tolerance: 0.40
-    FollowPath:
-      plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: true
-      min_vel_x: 0.05
-      min_vel_y: 0.0
-      max_vel_x: 0.30
-      max_vel_y: 0.0
-      max_vel_theta: 2.0
-      min_speed_xy: 0.05
-      max_speed_xy: 0.35
-      min_speed_theta: 0.0
-      # Add high threshold velocity for turtlebot 3 issue.
-      # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 3.0
-      acc_lim_y: 0.0
-      acc_lim_theta: 3.5
-      decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -3.2
-      vx_samples: 16
-      vy_samples: 0
-      vtheta_samples: 40
-      sim_time: 1.0
-      linear_granularity: 0.03
-      angular_granularity: 0.02
+
+    GracefulController:
+      plugin: "nav2_graceful_controller::GracefulController"
+
+      # === 下面是 Graceful Controller 常用參數，可以先用這組當 baseline ===
       transform_tolerance: 0.2
-      xy_goal_tolerance: 0.10
-      trans_stopped_velocity: 0.05
-      short_circuit_trajectory_evaluation: true
-      stateful: true
-      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 20.0
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 20.0
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 16.0
-      RotateToGoal.scale: 8.0
-      RotateToGoal.slowing_factor: 3.0
-      RotateToGoal.lookahead_time: -1.0
+
+      # 線速度設定
+      min_linear_velocity: 0.05     # 最低前進速度，避免停在原地抖動
+      max_linear_velocity: 0.30     # 你原本 max_vel_x ≈ 0.30，就沿用
+      linear_acceleration: 3.0
+      linear_deceleration: 3.0
+
+      # 角速度設定
+      min_angular_velocity: 0.2
+      max_angular_velocity: 2.0
+      angular_acceleration: 3.5
+      angular_deceleration: 3.2
+
+      # 行為相關
+      lookahead_distance: 0.4       # 看前面多遠的 path 來決定速度
+      goal_dist_tolerance: 0.10
+      goal_yaw_tolerance: 0.40
+      allow_reverse: true           # 允許倒車（不想要就改 false）
+      use_shortest_angular_distance: true
+
     enable_stamped_cmd_vel: true
+
 
 local_costmap:
   local_costmap:
