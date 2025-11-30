@@ -281,12 +281,22 @@ map_saver:
 planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
+
+    # ⚠ 這裡一定要用 GridBased，因為 BT 預設用這個名字叫 planner
     planner_plugins: ["GridBased"]
+
     GridBased:
-      plugin: "nav2_navfn_planner::NavfnPlanner"
-      tolerance: 0.5
-      use_astar: false
-      allow_unknown: true
+      plugin: "nav2_smac_planner::SmacPlannerLattice"
+
+      # 先用最簡的幾個參數，其他都用預設值
+      tolerance: 0.5          # 到目標的容許誤差
+      allow_unknown: true     # 可以穿越 unknown 區域（看你 map 設定）
+
+      # 如果你確定版本支援，最多加這幾個就好：
+      # motion_model_for_search: "REEDS_SHEPP"   # 可以倒車
+      # min_turning_radius: 0.40                # 最小轉彎半徑，依你的車調
+      # smooth_path: true
+
 
 behavior_server:
   ros__parameters:
