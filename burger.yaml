@@ -288,6 +288,57 @@ planner_server:
       use_astar: false
       allow_unknown: true
 
+smoother_server:
+  ros__parameters:
+    costmap_topic: global_costmap/costmap_raw
+    footprint_topic: global_costmap/published_footprint
+    robot_base_frame: base_link
+    transform_timeout: 0.1
+
+    smoother_plugins: ["SmoothPath"]
+
+    SmoothPath:
+      plugin: "nav2_constrained_smoother::ConstrainedSmoother"
+      reversing_enabled: true       # whether to detect forward/reverse direction and cusps
+      path_downsampling_factor: 3   # every n-th node of the path is taken. Useful for speed-up
+      path_upsampling_factor: 1     # 0 - keep downsampled, 1 - upsample back with bezier
+      keep_start_orientation: true  # do not smooth start orientation
+      keep_goal_orientation: true   # do not smooth goal orientation
+      minimum_turning_radius: 0.40  # robot min turning radius (0.0 = no constraint for diff-drive)
+
+      w_curve: 30.0                 # weight for enforcing min turning radius
+      w_dist: 0.0                   # bind to original path (optional vs cost weight)
+      w_smooth: 2000000.0           # smoothness weight
+      w_cost: 0.015                 # steer away from obstacles
+
+      # Cusp-related obstacle avoidance
+      w_cost_cusp_multiplier: 3.0   # extra cost weight near cusps
+      cusp_zone_length: 2.5         # length around cusp where extra cost applies
+
+      # cost_check_points: [-0.185, 0.0, 1.0]  # only if你真的需要
+
+      optimizer:
+        max_iterations: 70
+        debug_optimizer: false
+        gradient_tol: 5e3
+        fn_tol: 1.0e-15
+        param_tol: 1.0e-20
+
+smoother_server:
+  ros__parameters:
+    costmap_topic: global_costmap/costmap_raw
+    footprint_topic: global_costmap/published_footprint
+    robot_base_frame: base_link
+    transform_tolerance: 0.1
+    smoother_plugins: ["savitzky_golay_smoother"]
+    savitzky_golay_smoother:
+      plugin: "nav2_smoother::SavitzkyGolaySmoother"
+      window_size: 7
+      poly_order: 3
+      do_refinement: True
+      refinement_num: 2
+      enforce_path_inversion: True
+
 behavior_server:
   ros__parameters:
     local_costmap_topic: local_costmap/costmap_raw
