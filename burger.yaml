@@ -282,11 +282,48 @@ planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
     planner_plugins: ["GridBased"]
+
     GridBased:
-      plugin: "nav2_navfn_planner::NavfnPlanner"
-      tolerance: 0.5
-      use_astar: false
+      plugin: "nav2_smac_planner::SmacPlanner2D"   # ← 換成 Smac 2D
+
+      # 跟 NavFn 類似的精度設定
+      tolerance: 0.5               # 終點容許誤差
+
+      # costmap 下採樣（先關掉，比較單純）
+      downsample_costmap: false
+      downsampling_factor: 1
+
+      # 是否允許未知區域
       allow_unknown: true
+
+      # A* 搜尋相關
+      max_iterations: 1000000
+      max_on_approach_iterations: 1000
+      terminal_checking_interval: 500
+
+      # 對差速驅動比較 OK 的搜尋模型（4/8 鄰域）
+      motion_model_for_search: "MOORE"   # "VON_NEUMANN"=4鄰域, "MOORE"=8鄰域
+
+      # 路徑平滑化（先關閉，需要再開）
+      smooth_path: false
+
+      # cost 相關的懲罰（先用 1.0，之後再調）
+      change_penalty: 1.0
+      non_straight_penalty: 1.0
+      rotation_penalty: 1.0
+      reverse_penalty: 1.0
+      cost_travel_multiplier: 2.0
+      cost_factor: 0.015
+
+      # analytic expansion（啟發式直線展開，可先保留預設）
+      analytic_expansion_ratio: 3.5
+      analytic_expansion_max_length: 3.0
+      analytic_expansion_max_cost: 200.0
+      analytic_expansion_max_cost_override: true
+
+      # 抵達目標時是否對齊姿態
+      use_final_approach_orientation: false
+
 
 behavior_server:
   ros__parameters:
